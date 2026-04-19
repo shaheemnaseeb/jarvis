@@ -1,0 +1,21 @@
+# Node
+node_modules/
+dist/
+build/
+
+# Tauri
+src-tauri/target/
+src-tauri/Cargo.lock
+
+# Env
+.env
+.env.local
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
