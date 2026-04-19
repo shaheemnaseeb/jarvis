@@ -1,21 +1,41 @@
 # Node
 node_modules/
+**/node_modules/
 dist/
 build/
+**/dist/
+**/build/
+.turbo/
+.vite/
 
 # Tauri
-src-tauri/target/
-src-tauri/Cargo.lock
+target/
+**/target/
+apps/desktop/src-tauri/gen/
+
+# Keep Cargo.lock committed for application crates
+!apps/desktop/src-tauri/Cargo.lock
 
 # Env
 .env
 .env.local
+.env.*.local
 
 # Logs
 npm-debug.log*
 yarn-debug.log*
 pnpm-debug.log*
+*.log
 
 # OS
 .DS_Store
 Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+.vs/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates

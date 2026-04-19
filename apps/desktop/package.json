@@ -1,15 +1,13 @@
 {
-  "name": "jarvis",
-  "version": "0.1.0",
+  "name": "jarvis-desktop",
   "private": true,
   "type": "module",
-  "workspaces": [
-    "apps/desktop"
-  ],
   "scripts": {
-    "dev": "npm --workspace apps/desktop run tauri -- dev",
-    "build": "npm --workspace apps/desktop run tauri -- build",
-    "typecheck": "npm --workspace apps/desktop run typecheck"
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "tauri": "tauri",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@tauri-apps/api": "^2.0.0",
@@ -21,6 +19,7 @@
     "@types/node": "^22.10.1",
     "@types/react": "^18.3.12",
     "@types/react-dom": "^18.3.1",
-    "typescript": "^5.7.2"
+    "typescript": "^5.7.2",
+    "vite": "^5.4.10"
   }
 }
