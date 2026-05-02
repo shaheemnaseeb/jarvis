@@ -2,7 +2,7 @@ import { FormEvent, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 
 import { executeTool } from "../../../packages/actions/executeTool";
-import { parseCommand } from "../../../packages/ai/tools";
+import { parseCommandWithAI } from "../../../packages/openai";
 
 function App() {
   const [status, setStatus] = useState("");
@@ -22,16 +22,18 @@ function App() {
   const handleRunCommand = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
-    const parsed = parseCommand(command);
-
-    if (!parsed) {
-      setStatus("Command not recognized.");
-      return;
-    }
-
-    setStatus(`Executing ${parsed.tool}...`);
+    setStatus("Parsing command...");
 
     try {
+      const parsed = await parseCommandWithAI(command);
+
+      if (!parsed) {
+        setStatus("Command not recognized.");
+        return;
+      }
+
+      setStatus(`Executing ${parsed.tool}...`);
+
       const result = await executeTool(parsed);
       setStatus(result);
     } catch (error) {

@@ -52,3 +52,24 @@ jarvis/
     openai/         # AI integration layer
     wakeword/       # Wake phrase detection
     shared/         # Shared types and utilities
+
+## Local Development
+
+The OpenAI request is handled by the Rust backend in `apps/desktop/src-tauri`, and the frontend only calls the backend through Tauri `invoke()`.
+
+### Environment
+
+Put your local key in `apps/desktop/.env`:
+
+```env
+OPENAI_API_KEY=replace_with_my_temp_key
+OPENAI_MODEL=gpt-4o-mini
+```
+
+This `.env` is ignored by git. Do not use `VITE_` variables for the OpenAI key.
+
+### Run
+
+```bash
+npm --workspace apps/desktop run dev:tauri
+```
