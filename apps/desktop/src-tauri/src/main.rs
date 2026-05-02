@@ -97,9 +97,55 @@ async fn open_app(app: String) -> Result<String, String> {
     Err("unsupported platform".to_string())
 }
 
+#[tauri::command]
+async fn open_url(url: String) -> Result<String, String> {
+    if !url.starts_with("http://") && !url.starts_with("https://") {
+        return Err(format!("invalid url: {}", url));
+    }
+
+    #[cfg(target_os = "windows")]
+    {
+        use std::process::Command;
+
+        Command::new("cmd")
+            .args(["/C", "start", "", url.as_str()])
+            .spawn()
+            .map_err(|e| format!("failed to open {}: {}", url, e))?;
+
+        return Ok(format!("Opened {}", url));
+    }
+
+    #[cfg(target_os = "macos")]
+    {
+        use std::process::Command;
+
+        Command::new("open")
+            .arg(url.as_str())
+            .spawn()
+            .map_err(|e| format!("failed to open {}: {}", url, e))?;
+
+        return Ok(format!("Opened {}", url));
+    }
+
+    #[cfg(all(unix, not(target_os = "macos")))]
+    {
+        use std::process::Command;
+
+        Command::new("xdg-open")
+            .arg(url.as_str())
+            .spawn()
+            .map_err(|e| format!("failed to open {}: {}", url, e))?;
+
+        return Ok(format!("Opened {}", url));
+    }
+
+    #[allow(unreachable_code)]
+    Err("unsupported platform".to_string())
+}
+
 fn main() {
     tauri::Builder::default()
-        .invoke_handler(tauri::generate_handler![open_app])
+    .invoke_handler(tauri::generate_handler![open_app, open_url])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

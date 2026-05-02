@@ -1,20 +1,5 @@
-import { exec } from "child_process";
+import { invoke } from "@tauri-apps/api/core";
 
-export function openApp(app: string) {
-  console.log("Opening app:", app);
-
-  const appMap: Record<string, string> = {
-    spotify: "start spotify",
-    chrome: "start chrome",
-    vscode: "code",
-  };
-
-  const command = appMap[app.toLowerCase()];
-
-  if (!command) {
-    console.log("App not supported yet");
-    return;
-  }
-
-  exec(command);
+export async function openApp(app: string): Promise<string> {
+  return invoke<string>("open_app", { app });
 }
