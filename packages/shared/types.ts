@@ -5,6 +5,11 @@ export const TOOL_NAMES = [
   "clipboard_write",
   "media_control",
   "volume_control",
+  "get_datetime",
+  "system_info",
+  "search_files",
+  "open_path",
+  "create_folder",
 ] as const;
 
 export type ToolName = (typeof TOOL_NAMES)[number];
@@ -35,10 +40,23 @@ export interface VolumeControlArgs {
   action: VolumeAction;
 }
 
+export interface SearchFilesArgs {
+  query: string;
+}
+
+export interface PathArgs {
+  path: string;
+}
+
 export type ToolCall =
   | { tool: "open_app"; args: OpenAppArgs }
   | { tool: "open_url"; args: OpenUrlArgs }
   | { tool: "clipboard_read"; args: Record<string, never> }
   | { tool: "clipboard_write"; args: ClipboardWriteArgs }
   | { tool: "media_control"; args: MediaControlArgs }
-  | { tool: "volume_control"; args: VolumeControlArgs };
+  | { tool: "volume_control"; args: VolumeControlArgs }
+  | { tool: "get_datetime"; args: Record<string, never> }
+  | { tool: "system_info"; args: Record<string, never> }
+  | { tool: "search_files"; args: SearchFilesArgs }
+  | { tool: "open_path"; args: PathArgs }
+  | { tool: "create_folder"; args: PathArgs };
