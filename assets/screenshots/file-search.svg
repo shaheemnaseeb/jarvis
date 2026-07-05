@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="988" height="686" viewBox="0 0 988 686" role="img" aria-labelledby="title desc">
+  <title id="title">Jarvis file search</title>
+  <desc id="desc">Jarvis conversation showing file search, finding a thesis folder, and opening it.</desc>
+  <defs>
+    <radialGradient id="orb" cx="35%" cy="25%" r="70%">
+      <stop offset="0" stop-color="#9ee8ff"/><stop offset="0.45" stop-color="#37bff2"/><stop offset="1" stop-color="#0e5479"/>
+    </radialGradient>
+    <filter id="glow" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="20" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  </defs>
+  <rect width="988" height="686" fill="#020712"/>
+  <rect y="0" width="988" height="39" fill="#1d1d1d"/>
+  <text x="26" y="84" fill="#f6fbff" font-family="Segoe UI, Arial, sans-serif" font-size="22" font-weight="700" letter-spacing="10">JARVIS<tspan fill="#1ebfff">.</tspan></text>
+  <text x="904" y="82" fill="#8fb7ef" font-family="Segoe UI, Arial, sans-serif" font-size="12" letter-spacing="4">STANDBY</text>
+  <circle cx="500" cy="178" r="58" fill="url(#orb)" filter="url(#glow)"/>
+  <rect x="687" y="291" width="275" height="30" rx="7" fill="#072238" stroke="#0a7fab"/>
+  <text x="824" y="306" text-anchor="middle" fill="#fff" font-family="Segoe UI, Arial, sans-serif" font-size="14">Can you locate my master thesis folder?</text>
+  <rect x="32" y="329" width="593" height="43" rx="10" fill="#101b31" stroke="#263f6d"/>
+  <text x="48" y="356" fill="#fff" font-family="Segoe UI, Arial, sans-serif" font-size="14">I couldn't find a folder named "master thesis." Would you like to search for something else?</text>
+  <rect x="732" y="381" width="230" height="43" rx="11" fill="#072238" stroke="#0a7fab"/>
+  <text x="847" y="408" text-anchor="middle" fill="#fff" font-family="Segoe UI, Arial, sans-serif" font-size="14">Maybe the folder name is thesis.</text>
+  <rect x="32" y="434" width="665" height="43" rx="10" fill="#101b31" stroke="#263f6d"/>
+  <text x="48" y="462" fill="#fff" font-family="Segoe UI, Arial, sans-serif" font-size="14">I found several matches for "thesis," including a folder in OneDrive. Would you like to open that folder?</text>
+  <rect x="909" y="488" width="53" height="43" rx="14" fill="#072238" stroke="#0a7fab"/>
+  <text x="936" y="515" text-anchor="middle" fill="#fff" font-family="Segoe UI, Arial, sans-serif" font-size="14">You</text>
+  <rect x="32" y="540" width="244" height="43" rx="10" fill="#101b31" stroke="#263f6d"/>
+  <text x="48" y="567" fill="#fff" font-family="Segoe UI, Arial, sans-serif" font-size="14">The thesis folder has been opened.</text>
+  <rect x="28" y="635" width="861" height="42" rx="11" fill="#0f1a31" stroke="#203a67"/>
+  <text x="46" y="661" fill="#8fb7ef" font-family="Segoe UI, Arial, sans-serif" font-size="14">Type a command...</text>
+  <rect x="897" y="635" width="75" height="42" rx="11" fill="#071b2a" stroke="#0d89bd"/>
+  <text x="934" y="660" text-anchor="middle" fill="#26c5ff" font-family="Segoe UI, Arial, sans-serif" font-size="14">Send</text>
+  <rect x="966" y="466" width="6" height="53" rx="3" fill="#203b72"/>
+</svg>

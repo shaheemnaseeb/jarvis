@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="996" height="730" viewBox="0 0 996 730" role="img" aria-labelledby="title desc">
+  <title id="title">Jarvis standby screen</title>
+  <desc id="desc">Dark Jarvis desktop interface with a glowing blue orb, standby status, command input, and quick command buttons.</desc>
+  <defs>
+    <radialGradient id="orb" cx="35%" cy="25%" r="70%">
+      <stop offset="0" stop-color="#9ee8ff"/>
+      <stop offset="0.45" stop-color="#37bff2"/>
+      <stop offset="1" stop-color="#0e5479"/>
+    </radialGradient>
+    <filter id="glow" x="-80%" y="-80%" width="260%" height="260%">
+      <feGaussianBlur stdDeviation="22" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  <rect width="996" height="730" fill="#020712"/>
+  <rect y="0" width="996" height="36" fill="#1d1d1d"/>
+  <text x="29" y="84" fill="#f6fbff" font-family="Segoe UI, Arial, sans-serif" font-size="22" font-weight="700" letter-spacing="10">JARVIS<tspan fill="#1ebfff">.</tspan></text>
+  <text x="905" y="81" fill="#8fb7ef" font-family="Segoe UI, Arial, sans-serif" font-size="12" letter-spacing="4">STANDBY</text>
+  <circle cx="500" cy="176" r="58" fill="url(#orb)" filter="url(#glow)"/>
+  <text x="500" y="443" text-anchor="middle" fill="#82aee8" font-family="Segoe UI, Arial, sans-serif" font-size="14">Click the orb and speak, or type a command below.</text>
+  <text x="500" y="467" text-anchor="middle" fill="#82aee8" font-family="Segoe UI, Arial, sans-serif" font-size="14">Try "open spotify and turn up the volume".</text>
+  <rect x="28" y="632" width="861" height="42" rx="11" fill="#0f1a31" stroke="#203a67"/>
+  <text x="46" y="658" fill="#8fb7ef" font-family="Segoe UI, Arial, sans-serif" font-size="14">Type a command...</text>
+  <rect x="897" y="632" width="75" height="42" rx="11" fill="#071b2a" stroke="#0d89bd"/>
+  <text x="934" y="657" text-anchor="middle" fill="#26c5ff" font-family="Segoe UI, Arial, sans-serif" font-size="14">Send</text>
+  <g fill="#050b18" stroke="#1d3763" font-family="Segoe UI, Arial, sans-serif" font-size="12">
+    <rect x="257" y="684" width="99" height="27" rx="14"/><text x="306" y="702" text-anchor="middle" fill="#8fb7ef">Open Spotify</text>
+    <rect x="365" y="684" width="104" height="27" rx="14"/><text x="417" y="702" text-anchor="middle" fill="#8fb7ef">Open Chrome</text>
+    <rect x="478" y="684" width="97" height="27" rx="14"/><text x="526" y="702" text-anchor="middle" fill="#8fb7ef">Play / Pause</text>
+    <rect x="584" y="684" width="159" height="27" rx="14"/><text x="663" y="702" text-anchor="middle" fill="#8fb7ef">What's on my clipboard?</text>
+  </g>
+</svg>

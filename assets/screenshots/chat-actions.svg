@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="988" height="555" viewBox="0 0 988 555" role="img" aria-labelledby="title desc">
+  <title id="title">Jarvis chat actions</title>
+  <desc id="desc">Jarvis chat log showing a user asking what Jarvis can do and opening Google Chrome.</desc>
+  <defs>
+    <radialGradient id="orb" cx="35%" cy="25%" r="70%">
+      <stop offset="0" stop-color="#9ee8ff"/><stop offset="0.45" stop-color="#37bff2"/><stop offset="1" stop-color="#0e5479"/>
+    </radialGradient>
+    <filter id="glow" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="20" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  </defs>
+  <rect width="988" height="555" fill="#020712"/>
+  <rect y="0" width="988" height="39" fill="#1d1d1d"/>
+  <text x="26" y="86" fill="#f6fbff" font-family="Segoe UI, Arial, sans-serif" font-size="22" font-weight="700" letter-spacing="10">JARVIS<tspan fill="#1ebfff">.</tspan></text>
+  <text x="904" y="85" fill="#8fb7ef" font-family="Segoe UI, Arial, sans-serif" font-size="12" letter-spacing="4">STANDBY</text>
+  <circle cx="498" cy="178" r="58" fill="url(#orb)" filter="url(#glow)"/>
+  <rect x="818" y="301" width="142" height="42" rx="12" fill="#072238" stroke="#0a7fab"/>
+  <text x="889" y="327" text-anchor="middle" fill="#fff" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="600">What can you do?</text>
+  <rect x="30" y="354" width="670" height="84" rx="10" fill="#101b31" stroke="#263f6d"/>
+  <text x="46" y="381" fill="#fff" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="600">I can help you with tasks like opening applications, browsing the web, managing files,</text>
+  <text x="46" y="402" fill="#fff" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="600">controlling media playback, adjusting volume, and providing information about your</text>
+  <text x="46" y="423" fill="#fff" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="600">system and the current date and time.</text>
+  <rect x="791" y="449" width="169" height="42" rx="12" fill="#072238" stroke="#0a7fab"/>
+  <text x="875" y="475" text-anchor="middle" fill="#fff" font-family="Segoe UI, Arial, sans-serif" font-size="14">Open Google Chrome.</text>
+  <rect x="30" y="502" width="210" height="42" rx="10" fill="#101b31" stroke="#263f6d"/>
+  <text x="45" y="528" fill="#fff" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="600">Google Chrome is now open.</text>
+  <rect x="964" y="294" width="6" height="53" rx="3" fill="#203b72"/>
+</svg>
