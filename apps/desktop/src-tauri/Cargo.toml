@@ -10,9 +10,12 @@ tauri-build = { version = "2", features = [] }
 tauri = { version = "2", features = [] }
 dotenvy = "0.15"
 env_logger = "0.10"
+arboard = "3"
+base64 = "0.22"
+enigo = "0.2"
 log = "0.4"
 open = "5"
-reqwest = { version = "0.11", default-features = false, features = ["json", "rustls-tls"] }
+reqwest = { version = "0.11", default-features = false, features = ["json", "rustls-tls", "multipart"] }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 

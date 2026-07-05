@@ -7,7 +7,10 @@ import type { ToolName } from "../shared/types";
  */
 export interface ToolParameterSchema {
   type: "object";
-  properties: Record<string, { type: "string"; description: string }>;
+  properties: Record<
+    string,
+    { type: "string"; description: string; enum?: readonly string[] }
+  >;
   required: string[];
   additionalProperties: false;
 }

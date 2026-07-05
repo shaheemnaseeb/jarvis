@@ -1,4 +1,6 @@
 import type { ToolCall, ToolName } from "../shared/types";
+import { clipboardReadTool, clipboardWriteTool } from "./definitions/clipboard";
+import { mediaControlTool, volumeControlTool } from "./definitions/media";
 import { openAppTool } from "./definitions/openApp";
 import { openUrlTool } from "./definitions/openUrl";
 import type { ToolDefinition } from "./types";
@@ -7,6 +9,10 @@ import type { ToolDefinition } from "./types";
 export const toolDefinitions: ReadonlyArray<ToolDefinition<unknown>> = [
   openAppTool,
   openUrlTool,
+  clipboardReadTool,
+  clipboardWriteTool,
+  mediaControlTool,
+  volumeControlTool,
 ];
 
 const registry: ReadonlyMap<string, ToolDefinition<unknown>> = new Map(

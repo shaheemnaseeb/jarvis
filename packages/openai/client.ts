@@ -1,9 +1,17 @@
 import { invoke } from "@tauri-apps/api/core";
 
-export interface ChatMessage {
-  role: "system" | "user" | "assistant";
-  content: string;
+/** A tool call exactly as the OpenAI API represents it (args still JSON text). */
+export interface RawToolCall {
+  id: string;
+  type: "function";
+  function: { name: string; arguments: string };
 }
+
+export type ChatMessage =
+  | { role: "system"; content: string }
+  | { role: "user"; content: string }
+  | { role: "assistant"; content: string | null; tool_calls?: RawToolCall[] }
+  | { role: "tool"; tool_call_id: string; content: string };
 
 export interface FunctionToolSpec {
   type: "function";
@@ -26,11 +34,7 @@ export interface ChatCompletionResponse {
   choices: Array<{
     message: {
       content: string | null;
-      tool_calls?: Array<{
-        id: string;
-        type: "function";
-        function: { name: string; arguments: string };
-      }>;
+      tool_calls?: RawToolCall[];
     };
   }>;
 }
