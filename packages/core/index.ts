@@ -1,1 +1,1 @@
-export { JarvisAgent } from "./agent";
+export { JarvisAgent, type ConfirmHandler } from "./agent";

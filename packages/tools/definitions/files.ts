@@ -1,7 +1,45 @@
-import { createFolder, openPath, searchFiles } from "../../actions/files";
-import type { PathArgs, SearchFilesArgs } from "../../shared/types";
-import type { ToolDefinition } from "../types";
+import {
+  copyFile,
+  createFolder,
+  deletePath,
+  moveFile,
+  openPath,
+  readFile,
+  searchFiles,
+} from "../../actions/files";
+import type {
+  PathArgs,
+  SearchFilesArgs,
+  TransferArgs,
+} from "../../shared/types";
+import type { ToolDefinition, ToolParameterSchema } from "../types";
 import { requireStringField } from "../validation";
+
+function parseTransferArgs(raw: unknown, tool: string): TransferArgs {
+  return {
+    from: requireStringField(raw, "from", tool),
+    to: requireStringField(raw, "to", tool),
+  };
+}
+
+function transferParameters(verb: string): ToolParameterSchema {
+  return {
+    type: "object",
+    properties: {
+      from: {
+        type: "string",
+        description: `Full or home-relative path of the file to ${verb}.`,
+      },
+      to: {
+        type: "string",
+        description:
+          "Destination folder or full destination path (inside the home directory).",
+      },
+    },
+    required: ["from", "to"],
+    additionalProperties: false,
+  };
+}
 
 export const searchFilesTool: ToolDefinition<SearchFilesArgs> = {
   name: "search_files",
@@ -53,6 +91,70 @@ export const openPathTool: ToolDefinition<PathArgs> = {
   },
   parseArgs: (raw) => ({ path: requireStringField(raw, "path", "open_path") }),
   execute: ({ path }) => openPath(path),
+};
+
+export const moveFileTool: ToolDefinition<TransferArgs> = {
+  name: "move_file",
+  description:
+    "Move a file or folder to a new location inside the home directory. " +
+    "Never overwrites; the user is asked to confirm first.",
+  parameters: transferParameters("move"),
+  parseArgs: (raw) => parseTransferArgs(raw, "move_file"),
+  execute: ({ from, to }) => moveFile(from, to),
+  confirmQuestion: ({ from, to }) => `Move ${from} to ${to} — yes or no?`,
+};
+
+export const copyFileTool: ToolDefinition<TransferArgs> = {
+  name: "copy_file",
+  description:
+    "Copy a file to a new location inside the home directory. Never overwrites.",
+  parameters: transferParameters("copy"),
+  parseArgs: (raw) => parseTransferArgs(raw, "copy_file"),
+  execute: ({ from, to }) => copyFile(from, to),
+};
+
+export const deletePathTool: ToolDefinition<PathArgs> = {
+  name: "delete_path",
+  description:
+    "Delete a file or folder by moving it to the recycle bin (recoverable). " +
+    "The user is asked to confirm first.",
+  parameters: {
+    type: "object",
+    properties: {
+      path: {
+        type: "string",
+        description: "Full or home-relative path of the file or folder to delete.",
+      },
+    },
+    required: ["path"],
+    additionalProperties: false,
+  },
+  parseArgs: (raw) => ({
+    path: requireStringField(raw, "path", "delete_path"),
+  }),
+  execute: ({ path }) => deletePath(path),
+  confirmQuestion: ({ path }) =>
+    `Move ${path} to the recycle bin — yes or no?`,
+};
+
+export const readFileTool: ToolDefinition<PathArgs> = {
+  name: "read_file",
+  description:
+    "Read the text content of a file inside the home directory (truncated " +
+    "for large files). Use to answer questions about a file's contents.",
+  parameters: {
+    type: "object",
+    properties: {
+      path: {
+        type: "string",
+        description: "Full or home-relative path of the text file to read.",
+      },
+    },
+    required: ["path"],
+    additionalProperties: false,
+  },
+  parseArgs: (raw) => ({ path: requireStringField(raw, "path", "read_file") }),
+  execute: ({ path }) => readFile(path),
 };
 
 export const createFolderTool: ToolDefinition<PathArgs> = {

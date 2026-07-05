@@ -22,7 +22,10 @@ function App() {
   const [command, setCommand] = useState("");
   const logEndRef = useRef<HTMLDivElement | null>(null);
 
-  const busy = jarvis.phase === "thinking" || jarvis.phase === "speaking";
+  const busy =
+    jarvis.phase === "thinking" ||
+    jarvis.phase === "speaking" ||
+    jarvis.confirmation !== null;
 
   useEffect(() => {
     logEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -66,6 +69,24 @@ function App() {
           <span className="orb-core" />
         </button>
         <p className="status">{jarvis.status}</p>
+
+        {jarvis.confirmation && (
+          <div className="confirm-bar">
+            <span className="confirm-question">{jarvis.confirmation}</span>
+            <button
+              className="confirm-yes"
+              onClick={() => jarvis.respondToConfirmation(true)}
+            >
+              Yes
+            </button>
+            <button
+              className="confirm-no"
+              onClick={() => jarvis.respondToConfirmation(false)}
+            >
+              No
+            </button>
+          </div>
+        )}
       </section>
 
       <section className="log">

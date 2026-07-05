@@ -10,6 +10,10 @@ export const TOOL_NAMES = [
   "search_files",
   "open_path",
   "create_folder",
+  "move_file",
+  "copy_file",
+  "delete_path",
+  "read_file",
 ] as const;
 
 export type ToolName = (typeof TOOL_NAMES)[number];
@@ -48,6 +52,11 @@ export interface PathArgs {
   path: string;
 }
 
+export interface TransferArgs {
+  from: string;
+  to: string;
+}
+
 export type ToolCall =
   | { tool: "open_app"; args: OpenAppArgs }
   | { tool: "open_url"; args: OpenUrlArgs }
@@ -59,4 +68,8 @@ export type ToolCall =
   | { tool: "system_info"; args: Record<string, never> }
   | { tool: "search_files"; args: SearchFilesArgs }
   | { tool: "open_path"; args: PathArgs }
-  | { tool: "create_folder"; args: PathArgs };
+  | { tool: "create_folder"; args: PathArgs }
+  | { tool: "move_file"; args: TransferArgs }
+  | { tool: "copy_file"; args: TransferArgs }
+  | { tool: "delete_path"; args: PathArgs }
+  | { tool: "read_file"; args: PathArgs };

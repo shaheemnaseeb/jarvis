@@ -125,6 +125,147 @@ pub async fn open_path(path: String) -> Result<String, String> {
     Ok(format!("Opened {}", absolute.display()))
 }
 
+/// Resolves a destination: if it points at an existing directory the source's
+/// file name is appended (so "move X to Documents" does the natural thing).
+/// Existing destinations are always rejected — no silent overwrites.
+fn resolve_destination(source: &Path, to_raw: &str) -> Result<PathBuf, String> {
+    let mut target = resolve_in_home(to_raw)?;
+
+    if target.is_dir() {
+        let name = source
+            .file_name()
+            .ok_or_else(|| "invalid source file name".to_string())?;
+        target = target.join(name);
+    }
+
+    if target.exists() {
+        return Err(format!(
+            "destination already exists: {}",
+            target.display()
+        ));
+    }
+
+    match target.parent() {
+        Some(parent) if parent.exists() => Ok(target),
+        Some(parent) => Err(format!(
+            "destination folder does not exist: {}",
+            parent.display()
+        )),
+        None => Err("invalid destination".to_string()),
+    }
+}
+
+#[tauri::command]
+pub async fn move_file(from: String, to: String) -> Result<String, String> {
+    info!("move_file called: {} -> {}", from, to);
+
+    let source = resolve_in_home(&from)?;
+
+    if !source.exists() {
+        return Err(format!("source does not exist: {}", source.display()));
+    }
+
+    let target = resolve_destination(&source, &to)?;
+
+    std::fs::rename(&source, &target).map_err(|error| {
+        format!(
+            "failed to move {} to {}: {}",
+            source.display(),
+            target.display(),
+            error
+        )
+    })?;
+
+    Ok(format!("Moved {} to {}", source.display(), target.display()))
+}
+
+#[tauri::command]
+pub async fn copy_file(from: String, to: String) -> Result<String, String> {
+    info!("copy_file called: {} -> {}", from, to);
+
+    let source = resolve_in_home(&from)?;
+
+    if !source.is_file() {
+        return Err(format!(
+            "source is not a file: {}",
+            source.display()
+        ));
+    }
+
+    let target = resolve_destination(&source, &to)?;
+
+    std::fs::copy(&source, &target).map_err(|error| {
+        format!(
+            "failed to copy {} to {}: {}",
+            source.display(),
+            target.display(),
+            error
+        )
+    })?;
+
+    Ok(format!("Copied {} to {}", source.display(), target.display()))
+}
+
+/// Deletes by moving to the system recycle bin — never permanent removal.
+#[tauri::command]
+pub async fn delete_path(path: String) -> Result<String, String> {
+    info!("delete_path called: {}", path);
+
+    let absolute = resolve_in_home(&path)?;
+
+    if !absolute.exists() {
+        return Err(format!("path does not exist: {}", absolute.display()));
+    }
+
+    trash::delete(&absolute)
+        .map_err(|error| format!("failed to delete {}: {}", absolute.display(), error))?;
+
+    Ok(format!("Moved {} to the recycle bin", absolute.display()))
+}
+
+const MAX_READ_BYTES: u64 = 32_768;
+
+#[tauri::command]
+pub async fn read_file(path: String) -> Result<String, String> {
+    use std::io::Read;
+
+    info!("read_file called: {}", path);
+
+    let absolute = resolve_in_home(&path)?;
+
+    if !absolute.is_file() {
+        return Err(format!("not a file: {}", absolute.display()));
+    }
+
+    let file = std::fs::File::open(&absolute)
+        .map_err(|error| format!("failed to open {}: {}", absolute.display(), error))?;
+
+    let total_len = file
+        .metadata()
+        .map(|metadata| metadata.len())
+        .unwrap_or(0);
+
+    let mut buffer = Vec::new();
+    file.take(MAX_READ_BYTES)
+        .read_to_end(&mut buffer)
+        .map_err(|error| format!("failed to read {}: {}", absolute.display(), error))?;
+
+    if buffer.contains(&0) {
+        return Err(format!(
+            "{} looks like a binary file, not text",
+            absolute.display()
+        ));
+    }
+
+    let mut text = String::from_utf8_lossy(&buffer).into_owned();
+
+    if total_len > MAX_READ_BYTES {
+        text.push_str("\n...(file truncated)");
+    }
+
+    Ok(text)
+}
+
 #[tauri::command]
 pub async fn create_folder(path: String) -> Result<String, String> {
     info!("create_folder called: {}", path);

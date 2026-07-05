@@ -2,8 +2,12 @@ import type { ToolCall, ToolName } from "../shared/types";
 import { clipboardReadTool, clipboardWriteTool } from "./definitions/clipboard";
 import { getDatetimeTool } from "./definitions/datetime";
 import {
+  copyFileTool,
   createFolderTool,
+  deletePathTool,
+  moveFileTool,
   openPathTool,
+  readFileTool,
   searchFilesTool,
 } from "./definitions/files";
 import { mediaControlTool, volumeControlTool } from "./definitions/media";
@@ -25,6 +29,10 @@ export const toolDefinitions: ReadonlyArray<ToolDefinition<unknown>> = [
   searchFilesTool,
   openPathTool,
   createFolderTool,
+  moveFileTool,
+  copyFileTool,
+  deletePathTool,
+  readFileTool,
 ];
 
 const registry: ReadonlyMap<string, ToolDefinition<unknown>> = new Map(
@@ -47,6 +55,15 @@ export function toToolCall(name: string, rawArgs: unknown): ToolCall {
   }
 
   return { tool: definition.name, args: definition.parseArgs(rawArgs) } as ToolCall;
+}
+
+/**
+ * Returns the question the user must approve before this call may execute,
+ * or null when the tool needs no confirmation.
+ */
+export function confirmationQuestion(call: ToolCall): string | null {
+  const definition = registry.get(call.tool);
+  return definition?.confirmQuestion?.(call.args) ?? null;
 }
 
 export async function executeTool(call: ToolCall): Promise<string> {

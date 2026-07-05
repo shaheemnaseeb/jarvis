@@ -24,8 +24,19 @@ export interface JarvisSession {
   phase: JarvisPhase;
   status: string;
   messages: UiMessage[];
+  /** Set while a destructive action awaits the user's yes/no. */
+  confirmation: string | null;
+  respondToConfirmation: (approved: boolean) => void;
   runCommand: (text: string) => Promise<void>;
   toggleListening: () => Promise<void>;
+}
+
+const AFFIRMATIVE =
+  /\b(yes|yeah|yep|sure|okay|ok|confirm|go ahead|do it|please do)\b/i;
+const NEGATIVE = /\b(no|nope|don'?t|do not|cancel|stop|never mind)\b/i;
+
+function isAffirmative(answer: string): boolean {
+  return AFFIRMATIVE.test(answer) && !NEGATIVE.test(answer);
 }
 
 function uiMessage(role: UiMessage["role"], text: string): UiMessage {
@@ -36,6 +47,7 @@ export function useJarvis(): JarvisSession {
   const [phase, setPhase] = useState<JarvisPhase>("idle");
   const [status, setStatus] = useState("");
   const [messages, setMessages] = useState<UiMessage[]>([]);
+  const [confirmation, setConfirmation] = useState<string | null>(null);
   const recorderRef = useRef<VoiceRecorder | null>(null);
   const agentRef = useRef<JarvisAgent | null>(null);
   const watcherRef = useRef<SilenceWatcher | null>(null);
@@ -44,14 +56,102 @@ export function useJarvis(): JarvisSession {
   const followUpListenRef = useRef(false);
   /** Breaks the listen -> run -> speak -> listen cycle for useCallback. */
   const startListeningRef = useRef<(followUp: boolean) => Promise<void>>();
+  /** Settles the pending confirmation exactly once (voice or button). */
+  const confirmSettleRef = useRef<((approved: boolean) => void) | null>(null);
 
   const getRecorder = () => {
     recorderRef.current ??= new VoiceRecorder();
     return recorderRef.current;
   };
 
+  /**
+   * Speaks the confirmation question, then listens for a spoken yes/no.
+   * Silence, an unclear answer, or any failure all count as "no" — a
+   * destructive action must never proceed by default.
+   */
+  const requestConfirmation = useCallback((question: string) => {
+    return new Promise<boolean>((resolve) => {
+      let settled = false;
+
+      const settle = (approved: boolean) => {
+        if (settled) {
+          return;
+        }
+        settled = true;
+
+        watcherRef.current?.stop();
+        watcherRef.current = null;
+        confirmSettleRef.current = null;
+
+        const recorder = getRecorder();
+        if (recorder.isRecording) {
+          recorder.stop().catch(() => {
+            // Already stopping; the clip is discarded either way.
+          });
+        }
+
+        setConfirmation(null);
+        setPhase("thinking");
+        setStatus(approved ? "Confirmed." : "Cancelled.");
+        resolve(approved);
+      };
+
+      confirmSettleRef.current = settle;
+      setConfirmation(question);
+
+      void (async () => {
+        try {
+          setPhase("speaking");
+          setStatus(question);
+          await speak(question);
+
+          if (settled) {
+            return;
+          }
+
+          const recorder = getRecorder();
+          const stream = await recorder.start();
+
+          const watcher = new SilenceWatcher(
+            stream,
+            (event) => {
+              void (async () => {
+                try {
+                  const audio = await recorder.stop();
+
+                  if (event === "no-speech") {
+                    settle(false);
+                    return;
+                  }
+
+                  setStatus("Transcribing...");
+                  const answer = await transcribeAudio(audio);
+                  settle(isAffirmative(answer));
+                } catch {
+                  settle(false);
+                }
+              })();
+            },
+            { silenceMs: 900, noSpeechMs: 5000, maxUtteranceMs: 8000 },
+          );
+          watcher.start();
+          watcherRef.current = watcher;
+
+          setPhase("listening");
+        } catch {
+          // TTS or mic unavailable: the on-screen buttons remain usable.
+          setPhase("idle");
+        }
+      })();
+    });
+  }, []);
+
+  const respondToConfirmation = useCallback((approved: boolean) => {
+    confirmSettleRef.current?.(approved);
+  }, []);
+
   const getAgent = () => {
-    agentRef.current ??= new JarvisAgent();
+    agentRef.current ??= new JarvisAgent(requestConfirmation);
     return agentRef.current;
   };
 
@@ -177,6 +277,11 @@ export function useJarvis(): JarvisSession {
   startListeningRef.current = startListening;
 
   const toggleListening = useCallback(async () => {
+    // While a confirmation is pending, the confirmation flow owns the mic.
+    if (confirmSettleRef.current) {
+      return;
+    }
+
     const recorder = getRecorder();
 
     if (recorder.isRecording) {
@@ -191,5 +296,13 @@ export function useJarvis(): JarvisSession {
     await startListening(false);
   }, [phase, finishListening, startListening]);
 
-  return { phase, status, messages, runCommand, toggleListening };
+  return {
+    phase,
+    status,
+    messages,
+    confirmation,
+    respondToConfirmation,
+    runCommand,
+    toggleListening,
+  };
 }

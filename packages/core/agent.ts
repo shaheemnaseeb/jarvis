@@ -3,7 +3,18 @@ import {
   type ChatMessage,
   type FunctionToolSpec,
 } from "../openai/client";
-import { toolDefinitions, executeTool, toToolCall } from "../tools";
+import {
+  confirmationQuestion,
+  executeTool,
+  toolDefinitions,
+  toToolCall,
+} from "../tools";
+
+/**
+ * Asks the user to approve a destructive action. Resolving false (or the
+ * handler being absent) blocks execution.
+ */
+export type ConfirmHandler = (question: string) => Promise<boolean>;
 
 const MODEL = "gpt-4o-mini";
 
@@ -41,6 +52,8 @@ function toFunctionSpecs(): FunctionToolSpec[] {
  */
 export class JarvisAgent {
   private history: ChatMessage[] = [];
+
+  constructor(private readonly confirm?: ConfirmHandler) {}
 
   reset(): void {
     this.history = [];
@@ -92,6 +105,23 @@ export class JarvisAgent {
             rawCall.function.name,
             JSON.parse(rawCall.function.arguments),
           );
+
+          const question = confirmationQuestion(call);
+          if (question) {
+            const approved = this.confirm ? await this.confirm(question) : false;
+
+            if (!approved) {
+              result =
+                "The user declined this action. Do not retry it; acknowledge briefly.";
+              this.history.push({
+                role: "tool",
+                tool_call_id: rawCall.id,
+                content: result,
+              });
+              continue;
+            }
+          }
+
           result = await executeTool(call);
         } catch (error) {
           result = `Error: ${String(error)}`;

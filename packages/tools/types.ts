@@ -27,4 +27,9 @@ export interface ToolDefinition<TArgs> {
   /** Validates raw model-provided args into typed args; throws on mismatch. */
   parseArgs(raw: unknown): TArgs;
   execute(args: TArgs): Promise<string>;
+  /**
+   * When present, the tool is destructive: the returned question must be
+   * answered affirmatively by the user before `execute` may run.
+   */
+  confirmQuestion?(args: TArgs): string;
 }

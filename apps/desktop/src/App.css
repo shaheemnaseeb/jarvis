@@ -186,6 +186,45 @@ body {
   text-align: center;
 }
 
+/* ---------- confirmation ---------- */
+
+.confirm-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  max-width: 90%;
+  padding: 10px 16px;
+  border-radius: 12px;
+  border: 1px solid rgba(251, 191, 36, 0.4);
+  background: rgba(251, 191, 36, 0.08);
+}
+
+.confirm-question {
+  font-size: 13px;
+  color: #fbbf24;
+}
+
+.confirm-yes,
+.confirm-no {
+  padding: 6px 16px;
+  border-radius: 8px;
+  font-size: 13px;
+  cursor: pointer;
+  border: 1px solid transparent;
+}
+
+.confirm-yes {
+  background: rgba(74, 222, 128, 0.15);
+  border-color: rgba(74, 222, 128, 0.4);
+  color: #4ade80;
+}
+
+.confirm-no {
+  background: rgba(248, 113, 113, 0.15);
+  border-color: rgba(248, 113, 113, 0.4);
+  color: #f87171;
+}
+
 /* ---------- conversation log ---------- */
 
 .log {
