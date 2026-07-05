@@ -1,8 +1,7 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 mod commands;
-mod openai;
-mod tool_call;
+mod llm;
 
 use dotenvy::dotenv;
 use log::info;
@@ -17,7 +16,7 @@ fn main() {
         .invoke_handler(tauri::generate_handler![
             commands::open_app,
             commands::open_url,
-            openai::parse_command_ai,
+            llm::openai_chat,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

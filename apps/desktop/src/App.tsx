@@ -1,7 +1,7 @@
 import { FormEvent, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 
-import { executeTool } from "../../../packages/actions/executeTool";
+import { executeTool } from "../../../packages/tools";
 import { parseCommandWithAI } from "../../../packages/openai";
 
 function App() {
