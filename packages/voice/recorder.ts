@@ -29,17 +29,19 @@ export class VoiceRecorder {
     return this.recorder?.state === "recording";
   }
 
-  async start(): Promise<void> {
-    if (this.isRecording) {
-      return;
+  /** Starts recording and returns the live stream (e.g. for silence analysis). */
+  async start(): Promise<MediaStream> {
+    if (this.isRecording && this.stream) {
+      return this.stream;
     }
 
-    this.stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    this.stream = stream;
     this.chunks = [];
 
     const mimeType = pickMimeType();
     this.recorder = new MediaRecorder(
-      this.stream,
+      stream,
       mimeType ? { mimeType } : undefined,
     );
     this.recorder.ondataavailable = (event) => {
@@ -48,6 +50,8 @@ export class VoiceRecorder {
       }
     };
     this.recorder.start();
+
+    return stream;
   }
 
   async stop(): Promise<Blob> {

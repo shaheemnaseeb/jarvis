@@ -1,7 +1,12 @@
 import { useCallback, useRef, useState } from "react";
 
 import { JarvisAgent } from "../../../packages/core";
-import { speak, transcribeAudio, VoiceRecorder } from "../../../packages/voice";
+import {
+  SilenceWatcher,
+  speak,
+  transcribeAudio,
+  VoiceRecorder,
+} from "../../../packages/voice";
 
 /**
  * Session phases. The wake word engine will later drive the same
@@ -33,6 +38,12 @@ export function useJarvis(): JarvisSession {
   const [messages, setMessages] = useState<UiMessage[]>([]);
   const recorderRef = useRef<VoiceRecorder | null>(null);
   const agentRef = useRef<JarvisAgent | null>(null);
+  const watcherRef = useRef<SilenceWatcher | null>(null);
+  const finalizingRef = useRef(false);
+  /** Whether the active listen was auto-opened after a spoken reply. */
+  const followUpListenRef = useRef(false);
+  /** Breaks the listen -> run -> speak -> listen cycle for useCallback. */
+  const startListeningRef = useRef<(followUp: boolean) => Promise<void>>();
 
   const getRecorder = () => {
     recorderRef.current ??= new VoiceRecorder();
@@ -44,7 +55,7 @@ export function useJarvis(): JarvisSession {
     return agentRef.current;
   };
 
-  const runCommand = useCallback(async (text: string) => {
+  const runCommand = useCallback(async (text: string, followUp = false) => {
     setPhase("thinking");
     setStatus("Thinking...");
     setMessages((previous) => [...previous, uiMessage("user", text)]);
@@ -60,37 +71,116 @@ export function useJarvis(): JarvisSession {
       } catch {
         // Voice output is best-effort; the reply is already in the log.
       }
+
+      // Voice conversations continue: reopen the mic for a follow-up.
+      if (followUp) {
+        await startListeningRef.current?.(true);
+        return;
+      }
     } catch (error) {
-      const failure = `Something went wrong: ${String(error)}`;
-      setMessages((previous) => [...previous, uiMessage("assistant", failure)]);
+      setMessages((previous) => [
+        ...previous,
+        uiMessage("assistant", `Something went wrong: ${String(error)}`),
+      ]);
       setStatus("");
-    } finally {
-      setPhase("idle");
     }
+
+    setPhase("idle");
   }, []);
 
-  const toggleListening = useCallback(async () => {
-    const recorder = getRecorder();
+  /**
+   * Ends the current recording exactly once (silence auto-stop and manual
+   * orb clicks both land here). `cancelled` skips transcription entirely.
+   */
+  const finishListening = useCallback(
+    async (cancelled: boolean) => {
+      if (finalizingRef.current) {
+        return;
+      }
+      finalizingRef.current = true;
 
-    if (recorder.isRecording) {
-      setPhase("thinking");
-      setStatus("Transcribing...");
+      watcherRef.current?.stop();
+      watcherRef.current = null;
+
+      const wasFollowUp = followUpListenRef.current;
+      followUpListenRef.current = false;
 
       try {
+        const recorder = getRecorder();
+
+        if (!recorder.isRecording) {
+          return;
+        }
+
+        if (cancelled) {
+          await recorder.stop();
+          // A silent follow-up window just means the conversation is over.
+          setStatus(wasFollowUp ? "" : "I didn't hear anything.");
+          setPhase("idle");
+          return;
+        }
+
+        setPhase("thinking");
+        setStatus("Transcribing...");
+
         const audio = await recorder.stop();
         const text = await transcribeAudio(audio);
 
         if (text.trim()) {
-          await runCommand(text);
+          await runCommand(text, true);
         } else {
-          setStatus("I didn't hear anything.");
+          setStatus(wasFollowUp ? "" : "I didn't hear anything.");
           setPhase("idle");
         }
       } catch (error) {
         setStatus(`Voice input failed: ${String(error)}`);
         setPhase("idle");
+      } finally {
+        finalizingRef.current = false;
+      }
+    },
+    [runCommand],
+  );
+
+  const startListening = useCallback(
+    async (followUp: boolean) => {
+      const recorder = getRecorder();
+
+      if (recorder.isRecording) {
+        return;
       }
 
+      try {
+        const stream = await recorder.start();
+
+        const watcher = new SilenceWatcher(stream, (event) => {
+          void finishListening(event === "no-speech");
+        });
+        watcher.start();
+        watcherRef.current = watcher;
+        followUpListenRef.current = followUp;
+
+        setPhase("listening");
+        setStatus(
+          followUp
+            ? "Listening — anything else?"
+            : "Listening — I'll send when you pause.",
+        );
+      } catch (error) {
+        setStatus(`Microphone unavailable: ${String(error)}`);
+        setPhase("idle");
+      }
+    },
+    [finishListening],
+  );
+
+  startListeningRef.current = startListening;
+
+  const toggleListening = useCallback(async () => {
+    const recorder = getRecorder();
+
+    if (recorder.isRecording) {
+      await finishListening(false);
       return;
     }
 
@@ -98,14 +188,8 @@ export function useJarvis(): JarvisSession {
       return;
     }
 
-    try {
-      await recorder.start();
-      setPhase("listening");
-      setStatus("Listening...");
-    } catch (error) {
-      setStatus(`Microphone unavailable: ${String(error)}`);
-    }
-  }, [phase, runCommand]);
+    await startListening(false);
+  }, [phase, finishListening, startListening]);
 
   return { phase, status, messages, runCommand, toggleListening };
 }
