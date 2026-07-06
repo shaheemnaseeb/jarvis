@@ -30,6 +30,34 @@ pub async fn media_control(action: String) -> Result<String, String> {
     Ok(label.to_string())
 }
 
+/// Minimizes all windows via the OS shortcut (Win+D / Super+D).
+#[cfg(not(target_os = "macos"))]
+#[tauri::command]
+pub async fn show_desktop() -> Result<String, String> {
+    let mut enigo =
+        Enigo::new(&Settings::default()).map_err(|error| format!("input unavailable: {}", error))?;
+
+    enigo
+        .key(Key::Meta, Direction::Press)
+        .map_err(|error| format!("key press failed: {}", error))?;
+
+    let result = enigo.key(Key::Unicode('d'), Direction::Click);
+
+    // Always release the modifier, even if the 'd' press failed.
+    enigo
+        .key(Key::Meta, Direction::Release)
+        .map_err(|error| format!("key release failed: {}", error))?;
+
+    result.map_err(|error| format!("key press failed: {}", error))?;
+    Ok("Showing the desktop".to_string())
+}
+
+#[cfg(target_os = "macos")]
+#[tauri::command]
+pub async fn show_desktop() -> Result<String, String> {
+    Err("show desktop is not supported on macOS yet".to_string())
+}
+
 #[tauri::command]
 pub async fn volume_control(action: String) -> Result<String, String> {
     let (key, times, label) = match action.as_str() {

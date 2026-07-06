@@ -18,16 +18,24 @@ It combines a Tauri desktop shell, a React command UI, Rust system integrations,
 
 ## What It Can Do
 
-- Launch supported desktop apps, currently Spotify and Chrome.
+- Launch supported desktop apps: Spotify, Chrome, Edge, Notepad, Calculator, VS Code, File Explorer, Terminal, and Settings.
 - Open websites in the default browser.
 - Control media playback with play/pause, next track, and previous track.
 - Adjust system volume.
 - Read and write clipboard text.
 - Answer date, time, and system information questions.
 - Search for files and folders in the user's home directory.
+- List the contents of a folder.
 - Open files or folders with their default application.
-- Create, copy, move, read, and delete files within guarded filesystem boundaries.
-- Ask for confirmation before destructive or high-impact file actions.
+- Create, copy, move, read, write, append, and delete files within guarded filesystem boundaries.
+- Lock the screen, sleep, shut down, or restart the computer.
+- Minimize all windows to show the desktop.
+- Play a requested song — in the Spotify app when installed and connected, otherwise on YouTube.
+- Report the current weather (via wttr.in, no API key needed).
+- Read out the latest news headlines (via Google News RSS).
+- Take dictated notes in `Documents/jarvis-notes.txt` and read them back.
+- Run a "workshop entrance" when told "let's get to work" or "I'm back": plays Highway to Hell, then greets you with a weather, notes, and news briefing and suggests what to start on.
+- Ask for confirmation before destructive or high-impact actions such as deleting files or shutting down.
 
 ## How It Works
 
@@ -78,6 +86,8 @@ Create `apps/desktop/.env`:
 ```env
 OPENAI_API_KEY=replace_with_your_key
 OPENAI_MODEL=gpt-4o-mini
+# Optional: enables playback in the Spotify app (see Spotify Playback below)
+SPOTIFY_CLIENT_ID=replace_with_your_spotify_client_id
 ```
 
 Run the desktop app:
@@ -103,6 +113,17 @@ npm run typecheck
 The OpenAI request is handled by the Rust backend in `apps/desktop/src-tauri`. The frontend talks to the backend through Tauri `invoke()` calls, so the OpenAI key should stay in `apps/desktop/.env` and should not be exposed through `VITE_` environment variables.
 
 The current agent model is configured in `packages/core/agent.ts`. Tool execution is capped per user turn to avoid runaway action loops.
+
+## Spotify Playback (Optional)
+
+Without any setup, "play a song" opens the best YouTube match in the browser. To play songs in the Spotify desktop app instead:
+
+1. Create an app at <https://developer.spotify.com/dashboard> (any name works).
+2. In the app settings, add `http://127.0.0.1:8898/callback` as a redirect URI.
+3. Copy the app's Client ID into `SPOTIFY_CLIENT_ID` in `apps/desktop/.env`.
+4. Say "Jarvis, connect Spotify" and approve the browser prompt once.
+
+The refresh token is stored in the OS config directory (`%APPDATA%\jarvis` on Windows), never in the frontend. Starting playback through the Spotify Web API requires Spotify Premium; on free accounts Jarvis automatically falls back to YouTube.
 
 ## Safety Boundaries
 

@@ -6,13 +6,15 @@ import { requireStringField } from "../validation";
 export const openAppTool: ToolDefinition<OpenAppArgs> = {
   name: "open_app",
   description:
-    "Launch a desktop application installed on this computer. Supported apps: spotify, chrome.",
+    "Launch a desktop application installed on this computer. Supported apps: " +
+    "spotify, chrome, edge, notepad, calculator, vscode, explorer, terminal, settings.",
   parameters: {
     type: "object",
     properties: {
       app: {
         type: "string",
-        description: "Lowercase application identifier, e.g. 'spotify' or 'chrome'.",
+        description:
+          "Lowercase application identifier, e.g. 'spotify', 'notepad', or 'vscode'.",
       },
     },
     required: ["app"],

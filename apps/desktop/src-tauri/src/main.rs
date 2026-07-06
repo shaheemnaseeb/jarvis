@@ -5,7 +5,10 @@ mod commands;
 mod files;
 mod input;
 mod llm;
+mod power;
+mod spotify;
 mod system;
+mod web;
 
 use dotenvy::dotenv;
 use log::info;
@@ -24,6 +27,7 @@ fn main() {
             clipboard::clipboard_write,
             input::media_control,
             input::volume_control,
+            input::show_desktop,
             files::search_files,
             files::open_path,
             files::create_folder,
@@ -31,7 +35,15 @@ fn main() {
             files::copy_file,
             files::delete_path,
             files::read_file,
+            files::write_file,
+            files::append_file,
+            files::list_folder,
             system::system_info,
+            power::system_power,
+            web::play_song,
+            web::get_weather,
+            web::get_news,
+            spotify::spotify_connect,
             llm::openai_chat,
             llm::openai_transcribe,
             llm::openai_speech,

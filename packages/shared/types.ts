@@ -14,6 +14,15 @@ export const TOOL_NAMES = [
   "copy_file",
   "delete_path",
   "read_file",
+  "write_file",
+  "append_file",
+  "list_folder",
+  "system_power",
+  "show_desktop",
+  "play_song",
+  "get_weather",
+  "get_news",
+  "spotify_connect",
 ] as const;
 
 export type ToolName = (typeof TOOL_NAMES)[number];
@@ -23,6 +32,9 @@ export type MediaAction = (typeof MEDIA_ACTIONS)[number];
 
 export const VOLUME_ACTIONS = ["up", "down", "mute"] as const;
 export type VolumeAction = (typeof VOLUME_ACTIONS)[number];
+
+export const POWER_ACTIONS = ["lock", "sleep", "shutdown", "restart"] as const;
+export type PowerAction = (typeof POWER_ACTIONS)[number];
 
 export interface OpenAppArgs {
   app: string;
@@ -57,6 +69,23 @@ export interface TransferArgs {
   to: string;
 }
 
+export interface WriteFileArgs {
+  path: string;
+  content: string;
+}
+
+export interface SystemPowerArgs {
+  action: PowerAction;
+}
+
+export interface PlaySongArgs {
+  query: string;
+}
+
+export interface WeatherArgs {
+  city: string;
+}
+
 export type ToolCall =
   | { tool: "open_app"; args: OpenAppArgs }
   | { tool: "open_url"; args: OpenUrlArgs }
@@ -72,4 +101,13 @@ export type ToolCall =
   | { tool: "move_file"; args: TransferArgs }
   | { tool: "copy_file"; args: TransferArgs }
   | { tool: "delete_path"; args: PathArgs }
-  | { tool: "read_file"; args: PathArgs };
+  | { tool: "read_file"; args: PathArgs }
+  | { tool: "write_file"; args: WriteFileArgs }
+  | { tool: "append_file"; args: WriteFileArgs }
+  | { tool: "list_folder"; args: PathArgs }
+  | { tool: "system_power"; args: SystemPowerArgs }
+  | { tool: "show_desktop"; args: Record<string, never> }
+  | { tool: "play_song"; args: PlaySongArgs }
+  | { tool: "get_weather"; args: WeatherArgs }
+  | { tool: "get_news"; args: Record<string, never> }
+  | { tool: "spotify_connect"; args: Record<string, never> };

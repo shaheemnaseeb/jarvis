@@ -1,16 +1,20 @@
 import {
+  appendFile,
   copyFile,
   createFolder,
   deletePath,
+  listFolder,
   moveFile,
   openPath,
   readFile,
   searchFiles,
+  writeFile,
 } from "../../actions/files";
 import type {
   PathArgs,
   SearchFilesArgs,
   TransferArgs,
+  WriteFileArgs,
 } from "../../shared/types";
 import type { ToolDefinition, ToolParameterSchema } from "../types";
 import { requireStringField } from "../validation";
@@ -155,6 +159,96 @@ export const readFileTool: ToolDefinition<PathArgs> = {
   },
   parseArgs: (raw) => ({ path: requireStringField(raw, "path", "read_file") }),
   execute: ({ path }) => readFile(path),
+};
+
+export const writeFileTool: ToolDefinition<WriteFileArgs> = {
+  name: "write_file",
+  description:
+    "Create a new text file inside the home directory with the given " +
+    "content, e.g. saving a note or a list the user dictated. Never " +
+    "overwrites an existing file.",
+  parameters: {
+    type: "object",
+    properties: {
+      path: {
+        type: "string",
+        description:
+          "Home-relative or absolute path of the new file, e.g. 'Documents/note.txt'.",
+      },
+      content: {
+        type: "string",
+        description: "The text content to write into the file.",
+      },
+    },
+    required: ["path", "content"],
+    additionalProperties: false,
+  },
+  parseArgs: (raw) => ({
+    path: requireStringField(raw, "path", "write_file"),
+    content: requireStringField(raw, "content", "write_file"),
+  }),
+  execute: ({ path, content }) => writeFile(path, content),
+};
+
+export const appendFileTool: ToolDefinition<WriteFileArgs> = {
+  name: "append_file",
+  description:
+    "Append a line of text to a file, creating the file if it does not " +
+    "exist. Use for adding to the user's notes without touching existing " +
+    "content.",
+  parameters: {
+    type: "object",
+    properties: {
+      path: {
+        type: "string",
+        description:
+          "Home-relative or absolute path of the file, e.g. 'Documents/jarvis-notes.txt'.",
+      },
+      content: {
+        type: "string",
+        description: "The text to append as a new line.",
+      },
+    },
+    required: ["path", "content"],
+    additionalProperties: false,
+  },
+  parseArgs: (raw) => ({
+    path: requireStringField(raw, "path", "append_file"),
+    content: requireStringField(raw, "content", "append_file"),
+  }),
+  execute: ({ path, content }) => appendFile(path, content),
+};
+
+export const listFolderTool: ToolDefinition<PathArgs> = {
+  name: "list_folder",
+  description:
+    "List the files and subfolders inside a folder in the home directory. " +
+    "Folder names end with '/'. Use to answer questions like 'what is in " +
+    "my Downloads folder'.",
+  parameters: {
+    type: "object",
+    properties: {
+      path: {
+        type: "string",
+        description:
+          "Full or home-relative path of the folder, e.g. 'Downloads'.",
+      },
+    },
+    required: ["path"],
+    additionalProperties: false,
+  },
+  parseArgs: (raw) => ({
+    path: requireStringField(raw, "path", "list_folder"),
+  }),
+  execute: async ({ path }) => {
+    const entries = await listFolder(path);
+
+    if (entries.length === 0) {
+      return `The folder "${path}" is empty.`;
+    }
+
+    return `Contents of ${path} (${entries.length} entries):\n${entries.join("\n")}`;
+  },
 };
 
 export const createFolderTool: ToolDefinition<PathArgs> = {

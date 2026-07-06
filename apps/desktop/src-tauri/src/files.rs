@@ -266,6 +266,115 @@ pub async fn read_file(path: String) -> Result<String, String> {
     Ok(text)
 }
 
+const MAX_WRITE_BYTES: usize = 65_536;
+
+/// Writes a new text file — never overwrites an existing one, mirroring the
+/// no-silent-overwrite rule used by move/copy.
+#[tauri::command]
+pub async fn write_file(path: String, content: String) -> Result<String, String> {
+    info!("write_file called: {}", path);
+
+    let absolute = resolve_in_home(&path)?;
+
+    if absolute.exists() {
+        return Err(format!("already exists: {}", absolute.display()));
+    }
+
+    if content.len() > MAX_WRITE_BYTES {
+        return Err("content too large to write".to_string());
+    }
+
+    match absolute.parent() {
+        Some(parent) if parent.exists() => {}
+        Some(parent) => {
+            return Err(format!(
+                "folder does not exist: {} (create it first with create_folder)",
+                parent.display()
+            ))
+        }
+        None => return Err("invalid destination".to_string()),
+    }
+
+    std::fs::write(&absolute, content)
+        .map_err(|error| format!("failed to write {}: {}", absolute.display(), error))?;
+
+    Ok(format!("Wrote {}", absolute.display()))
+}
+
+/// Appends a line of text to a file, creating it if needed. Additive only,
+/// so unlike write_file it may target an existing file without confirmation.
+#[tauri::command]
+pub async fn append_file(path: String, content: String) -> Result<String, String> {
+    use std::io::Write;
+
+    info!("append_file called: {}", path);
+
+    let absolute = resolve_in_home(&path)?;
+
+    if content.len() > MAX_WRITE_BYTES {
+        return Err("content too large to write".to_string());
+    }
+
+    if absolute.is_dir() {
+        return Err(format!("is a folder, not a file: {}", absolute.display()));
+    }
+
+    match absolute.parent() {
+        Some(parent) if parent.exists() => {}
+        Some(parent) => {
+            return Err(format!(
+                "folder does not exist: {} (create it first with create_folder)",
+                parent.display()
+            ))
+        }
+        None => return Err("invalid destination".to_string()),
+    }
+
+    let mut file = std::fs::OpenOptions::new()
+        .create(true)
+        .append(true)
+        .open(&absolute)
+        .map_err(|error| format!("failed to open {}: {}", absolute.display(), error))?;
+
+    writeln!(file, "{}", content.trim_end())
+        .map_err(|error| format!("failed to append to {}: {}", absolute.display(), error))?;
+
+    Ok(format!("Added to {}", absolute.display()))
+}
+
+const MAX_LIST_ENTRIES: usize = 100;
+
+#[tauri::command]
+pub async fn list_folder(path: String) -> Result<Vec<String>, String> {
+    info!("list_folder called: {}", path);
+
+    let absolute = resolve_in_home(&path)?;
+
+    if !absolute.is_dir() {
+        return Err(format!("not a folder: {}", absolute.display()));
+    }
+
+    let entries = std::fs::read_dir(&absolute)
+        .map_err(|error| format!("failed to list {}: {}", absolute.display(), error))?;
+
+    let mut names: Vec<String> = entries
+        .filter_map(|entry| entry.ok())
+        .take(MAX_LIST_ENTRIES)
+        .map(|entry| {
+            let mut name = entry.file_name().to_string_lossy().into_owned();
+            if entry.file_type().map(|kind| kind.is_dir()).unwrap_or(false) {
+                name.push('/');
+            }
+            name
+        })
+        .collect();
+
+    // Folders (trailing '/') sort together, then case-insensitive by name.
+    names.sort_by_key(|name| (!name.ends_with('/'), name.to_lowercase()));
+
+    Ok(names)
+}
+
 #[tauri::command]
 pub async fn create_folder(path: String) -> Result<String, String> {
     info!("create_folder called: {}", path);

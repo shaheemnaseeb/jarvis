@@ -28,8 +28,9 @@ export interface ToolDefinition<TArgs> {
   parseArgs(raw: unknown): TArgs;
   execute(args: TArgs): Promise<string>;
   /**
-   * When present, the tool is destructive: the returned question must be
-   * answered affirmatively by the user before `execute` may run.
+   * When present, the tool can be destructive: the returned question must be
+   * answered affirmatively by the user before `execute` may run. Returning
+   * null skips confirmation for harmless variants of the tool.
    */
-  confirmQuestion?(args: TArgs): string;
+  confirmQuestion?(args: TArgs): string | null;
 }

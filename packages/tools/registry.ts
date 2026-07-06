@@ -2,18 +2,31 @@ import type { ToolCall, ToolName } from "../shared/types";
 import { clipboardReadTool, clipboardWriteTool } from "./definitions/clipboard";
 import { getDatetimeTool } from "./definitions/datetime";
 import {
+  appendFileTool,
   copyFileTool,
   createFolderTool,
   deletePathTool,
+  listFolderTool,
   moveFileTool,
   openPathTool,
   readFileTool,
   searchFilesTool,
+  writeFileTool,
 } from "./definitions/files";
 import { mediaControlTool, volumeControlTool } from "./definitions/media";
 import { openAppTool } from "./definitions/openApp";
 import { openUrlTool } from "./definitions/openUrl";
-import { systemInfoTool } from "./definitions/system";
+import {
+  showDesktopTool,
+  systemInfoTool,
+  systemPowerTool,
+} from "./definitions/system";
+import {
+  getNewsTool,
+  getWeatherTool,
+  playSongTool,
+  spotifyConnectTool,
+} from "./definitions/web";
 import type { ToolDefinition } from "./types";
 
 /** Every tool the AI may select. Adding a tool means adding one entry here. */
@@ -33,6 +46,15 @@ export const toolDefinitions: ReadonlyArray<ToolDefinition<unknown>> = [
   copyFileTool,
   deletePathTool,
   readFileTool,
+  writeFileTool,
+  appendFileTool,
+  listFolderTool,
+  systemPowerTool,
+  showDesktopTool,
+  playSongTool,
+  getWeatherTool,
+  getNewsTool,
+  spotifyConnectTool,
 ];
 
 const registry: ReadonlyMap<string, ToolDefinition<unknown>> = new Map(

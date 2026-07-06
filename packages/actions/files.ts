@@ -27,3 +27,15 @@ export async function deletePath(path: string): Promise<string> {
 export async function readFile(path: string): Promise<string> {
   return invoke<string>("read_file", { path });
 }
+
+export async function writeFile(path: string, content: string): Promise<string> {
+  return invoke<string>("write_file", { path, content });
+}
+
+export async function appendFile(path: string, content: string): Promise<string> {
+  return invoke<string>("append_file", { path, content });
+}
+
+export async function listFolder(path: string): Promise<string[]> {
+  return invoke<string[]>("list_folder", { path });
+}
