@@ -35,6 +35,7 @@ It combines a Tauri desktop shell, a React command UI, Rust system integrations,
 - Read out the latest news headlines (via Google News RSS).
 - Take dictated notes in `Documents/jarvis-notes.txt` and read them back.
 - Run a "workshop entrance" when told "let's get to work" or "I'm back": plays Highway to Hell, then greets you with a weather, notes, and news briefing and suggests what to start on.
+- Wake hands-free by saying "Hey Jarvis" — detection runs fully on-device with openWakeWord models, so standby audio never leaves the machine.
 - Ask for confirmation before destructive or high-impact actions such as deleting files or shutting down.
 
 ## How It Works
@@ -113,6 +114,10 @@ npm run typecheck
 The OpenAI request is handled by the Rust backend in `apps/desktop/src-tauri`. The frontend talks to the backend through Tauri `invoke()` calls, so the OpenAI key should stay in `apps/desktop/.env` and should not be exposed through `VITE_` environment variables.
 
 The current agent model is configured in `packages/core/agent.ts`. Tool execution is capped per user turn to avoid runaway action loops.
+
+## Wake Word
+
+Toggle "Hey Jarvis" standby with the button in the header (the choice is remembered). While idle, Jarvis listens locally using [openWakeWord](https://github.com/dscripka/openWakeWord)'s pretrained `hey_jarvis` model, run in the webview with onnxruntime-web. The three ONNX models live in `apps/desktop/public/models/openwakeword` and the ONNX Runtime WASM files in `apps/desktop/public/ort` (both checked in; no downloads at runtime). Saying the wake word starts the same listening flow as clicking the orb.
 
 ## Spotify Playback (Optional)
 

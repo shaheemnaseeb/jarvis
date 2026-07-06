@@ -49,8 +49,17 @@ function App() {
         <div className="wordmark">
           JARVIS<span>.</span>
         </div>
-        <div className="phase-label" data-phase={jarvis.phase}>
-          {PHASE_LABELS[jarvis.phase]}
+        <div className="header-controls">
+          <button
+            className="chip"
+            onClick={jarvis.toggleWakeWord}
+            title='Hands-free standby: wake Jarvis by saying "Hey Jarvis"'
+          >
+            {jarvis.wakeWordEnabled ? "🎙 Hey Jarvis: On" : "🎙 Hey Jarvis: Off"}
+          </button>
+          <div className="phase-label" data-phase={jarvis.phase}>
+            {PHASE_LABELS[jarvis.phase]}
+          </div>
         </div>
       </header>
 
@@ -94,7 +103,8 @@ function App() {
           <p className="log-empty">
             Click the orb and speak, or type a command below.
             <br />
-            Try “open spotify and turn up the volume”.
+            Try “open spotify and turn up the volume”, or enable the wake
+            word and just say “Hey Jarvis”.
           </p>
         ) : (
           jarvis.messages.map((message) => (

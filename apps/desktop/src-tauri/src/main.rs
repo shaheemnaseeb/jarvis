@@ -13,8 +13,21 @@ mod web;
 use dotenvy::dotenv;
 use log::info;
 
+/// In development the .env sits in the working directory. An installed app
+/// has no such file, so fall back to the user's config directory
+/// (e.g. %APPDATA%\jarvis\.env on Windows).
+fn load_env() {
+    if dotenv().is_ok() {
+        return;
+    }
+
+    if let Some(config) = dirs::config_dir() {
+        let _ = dotenvy::from_path(config.join("jarvis").join(".env"));
+    }
+}
+
 fn main() {
-    dotenv().ok();
+    load_env();
     env_logger::init();
 
     info!("jarvis-desktop starting");

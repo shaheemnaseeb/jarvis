@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { JarvisAgent } from "../../../packages/core";
 import {
@@ -7,6 +7,7 @@ import {
   transcribeAudio,
   VoiceRecorder,
 } from "../../../packages/voice";
+import { WakeWordDetector } from "../../../packages/wakeword";
 
 /**
  * Session phases. The wake word engine will later drive the same
@@ -29,7 +30,12 @@ export interface JarvisSession {
   respondToConfirmation: (approved: boolean) => void;
   runCommand: (text: string) => Promise<void>;
   toggleListening: () => Promise<void>;
+  /** Whether hands-free "Hey Jarvis" standby is on. */
+  wakeWordEnabled: boolean;
+  toggleWakeWord: () => void;
 }
+
+const WAKE_WORD_STORAGE_KEY = "jarvis.wakeword.enabled";
 
 const AFFIRMATIVE =
   /\b(yes|yeah|yep|sure|okay|ok|confirm|go ahead|do it|please do)\b/i;
@@ -276,6 +282,77 @@ export function useJarvis(): JarvisSession {
 
   startListeningRef.current = startListening;
 
+  const [wakeWordEnabled, setWakeWordEnabled] = useState(
+    () => localStorage.getItem(WAKE_WORD_STORAGE_KEY) === "on",
+  );
+  const detectorRef = useRef<WakeWordDetector | null>(null);
+  const detectorLoadingRef = useRef(false);
+
+  const toggleWakeWord = useCallback(() => {
+    setWakeWordEnabled((enabled) => {
+      const next = !enabled;
+      localStorage.setItem(WAKE_WORD_STORAGE_KEY, next ? "on" : "off");
+      if (!next) {
+        setStatus("");
+      }
+      return next;
+    });
+  }, []);
+
+  /**
+   * Runs the local wake word detector whenever Jarvis is idle and standby is
+   * enabled. Hearing "hey jarvis" opens the same listening flow as the orb;
+   * any other phase (or a pending confirmation) releases the microphone.
+   */
+  useEffect(() => {
+    const shouldRun =
+      wakeWordEnabled && phase === "idle" && confirmation === null;
+
+    if (!shouldRun) {
+      detectorRef.current?.stop();
+      return;
+    }
+
+    let cancelled = false;
+
+    void (async () => {
+      try {
+        if (!detectorRef.current) {
+          if (detectorLoadingRef.current) {
+            return;
+          }
+          detectorLoadingRef.current = true;
+          setStatus("Loading wake word models...");
+
+          detectorRef.current = await WakeWordDetector.load(() => {
+            void startListeningRef.current?.(false);
+          });
+          detectorLoadingRef.current = false;
+        }
+
+        if (!cancelled) {
+          await detectorRef.current.start();
+          setStatus('Standby — say "Hey Jarvis".');
+        }
+      } catch (error) {
+        detectorLoadingRef.current = false;
+        setWakeWordEnabled(false);
+        setStatus(`Wake word unavailable: ${String(error)}`);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [wakeWordEnabled, phase, confirmation]);
+
+  /** Release the microphone when the component unmounts. */
+  useEffect(() => {
+    return () => {
+      detectorRef.current?.stop();
+    };
+  }, []);
+
   const toggleListening = useCallback(async () => {
     // While a confirmation is pending, the confirmation flow owns the mic.
     if (confirmSettleRef.current) {
@@ -304,5 +381,7 @@ export function useJarvis(): JarvisSession {
     respondToConfirmation,
     runCommand,
     toggleListening,
+    wakeWordEnabled,
+    toggleWakeWord,
   };
 }
